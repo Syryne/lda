@@ -1,0 +1,11 @@
+#ifndef UNTITLED_PROJ_CTE_H
+#define UNTITLED_PROJ_CTE_H
+
+#define WINDOW_LENGTH 400
+#define FEAT_COUNT 6
+#define FEAT_TOT_COUNT 24
+#define SENS_COUNT 4
+#define CLASS_COUNT 10
+
+
+#endif //UNTITLED_PROJ_CTE_H
