@@ -28,12 +28,12 @@ size_n arr_argmax_si16(const si16 *a, const size_n n) {
     size_n i = 1;
     si16 max = *a;
     size_n p = 0;
-    const si16* it_a = a+1;
+    const si16* it_a = a;
 
     for (; i < n; ++i) {
 
-        if (*it_a > max) {
-            max = *(it_a++);
+        if (*(++it_a) > max) {
+            max = *it_a;
             p = i;
         } else
             ++it_a;
@@ -44,20 +44,19 @@ size_n arr_argmax_si16(const si16 *a, const size_n n) {
 
 }
 
-size_n arr_argmin_si16(const si16 *a, const size_n n) {
+size_n arr_argmin_si16e(const si16 *a, const size_n n) {
 
     size_n i = 1;
     si16 min = *a;
     size_n p = 0;
-    const si16* it_a = a+1;
+    const si16* it_a = a;
 
     for (; i < n; ++i) {
 
-        if (*it_a < min) {
-            min = *(it_a++);
+        if (*(++it_a) < min) {
+            min = *it_a;
             p = i;
-        } else
-            ++it_a;
+        }
 
     }
 
@@ -70,15 +69,14 @@ size_n arr_argmin_si32(const si32 *a, const size_n n) {
     size_n i = 1;
     si32 min = *a;
     size_n p = 0;
-    const si32* it_a = a+1;
+    const si32* it_a = a;
 
     for (; i < n; ++i) {
 
-        if (*it_a < min) {
-            min = *(it_a++);
+        if (*(++it_a) < min) {
+            min = *it_a;
             p = i;
-        } else
-            ++it_a;
+        }
 
     }
 

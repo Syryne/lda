@@ -75,6 +75,8 @@ void mat_read_fl(float *mat, const char *filename, size_n n_row, size_n n_col) {
 
     }
 
+    fclose(csv_file);
+
 }
 
 
@@ -113,6 +115,8 @@ void mat_read_series_fl(char *filename, float *mat, size_n n_row, size_n n_col, 
         }
 
     }
+
+    fclose(csv_file);
 
 }
 
@@ -175,7 +179,7 @@ void arr_read_fl(char *buf, float *arr, size_n l) {
 
 }
 
-void arr_print_fl(float *arr, size_n l) {
+void arr_print_fl(const float *arr, const size_n l) {
 
     size_n i = 1;
     printf("%f", arr[0]);

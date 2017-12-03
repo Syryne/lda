@@ -154,6 +154,19 @@ void arr_sub_ui16e(ui16 *c, ui8 *sc, const ui16 *a, const ui8 sa, const ui16 *b,
 
 }
 
+void arr_add_self_ui16e(ui16 *a, ui8* sa, const ui16 *b, const ui8* sb, const size_n size) {
+
+    ui16* it_a = a;
+    ui8* it_sa = sa;
+    const ui16* it_b = b;
+    const ui8* it_sb = sb;
+    size_n i = 0;
+
+    for (; i < size; ++i)
+        ui16_add_slf_es(it_a, it_sa, *it_b, *it_sb);
+
+}
+
 void arr_trnsf_upp_ui16d(ui16* y, ui8* sy, const ui16 *x, const ui8* sx, const ui16 *trans_mat, const ui8* stm, const size_n n_row) {
 
     ui16* it_y = y;
@@ -193,21 +206,31 @@ void arr_trnsf_upp_ui16d(ui16* y, ui8* sy, const ui16 *x, const ui8* sx, const u
 
         for (j = 0; j < n_row; ++j) {
 
+            temp = ((ui32) (*it_x) * *it_trans) >> ((*it_stm&UI16_SCALE) - min);
+
             if ((*it_sx&UI16_SIGN) == (*it_stm&UI16_SIGN)) {
 
                 //product is always positive
-                sum += (ui32) (*it_x * *it_trans) >> ((*it_stm&UI16_SCALE) - min);
+
+                if (*it_sy&UI16_SIGN) {
+                    if (temp > sum) {
+                        sum = temp - sum;
+                        *it_sy ^= UI16_SIGN;
+                    } else
+                        sum -= temp;
+                } else
+                    sum += temp;
 
             } else {
 
                 //product is always negative
-                temp = (ui32) (*it_x * *it_trans) >> ((*it_stm&UI16_SCALE) - min);
+
                 if (*it_sy&UI16_SIGN)
                     sum += temp;
                 else {
                     if (temp > sum) {
                         sum = temp - sum;
-                        *it_sy |= UI16_SIGN;
+                        *it_sy ^= UI16_SIGN;
                     } else
                         sum -= temp;
                 }
@@ -226,7 +249,7 @@ void arr_trnsf_upp_ui16d(ui16* y, ui8* sy, const ui16 *x, const ui8* sx, const u
 
         }
 
-        *it_sy += min + *sx;
+        *it_sy += min + (*sx&UI16_SCALE);
         ui32_ui16_ds(it_y, it_sy, sum);
 
         ++it_y;
@@ -255,8 +278,8 @@ ui16 arr_mult_scal_ui16de_ui16e(ui8 *sr, const ui16 *a, const ui8 *sa, const ui1
         if ((*it_sa&UI16_SIGN) == (*it_sb&UI16_SIGN)) {
 
             //tmp is always positive
-            if (*it_sa+*it_sb > *sr)
-                tmp >>= ((*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE) - *sr);
+            if ((*it_sa&UI16_SCALE)+(*it_sb&UI16_SCALE) > (*sr&UI16_SCALE))
+                tmp >>= ((*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE) - (*sr&UI16_SCALE));
             else
                 tmp <<= (*sr&UI16_SCALE - (*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE));
 
@@ -276,10 +299,10 @@ ui16 arr_mult_scal_ui16de_ui16e(ui8 *sr, const ui16 *a, const ui8 *sa, const ui1
         } else {
 
             //tmp is always negative
-            if (*it_sa+*it_sb > *sr)
-                tmp >>= ((*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE) - *sr);
+            if ((*it_sa&UI16_SCALE)+(*it_sb&UI16_SCALE) > (*sr&UI16_SCALE))
+                tmp >>= ((*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE) - (*sr&UI16_SCALE));
             else
-                tmp <<= (*sr - (*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE));
+                tmp <<= ((*sr&UI16_SCALE) - (*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE));
 
             tmp = ((tmp > UI16_MAX) ? UI16_MAX : tmp);
 
@@ -303,5 +326,91 @@ ui16 arr_mult_scal_ui16de_ui16e(ui8 *sr, const ui16 *a, const ui8 *sa, const ui1
     }
 
     return res;
+
+}
+
+ui16 arr_mult_scal_ui16de_ui16e_(ui8 *sr, const ui16 *a, const ui8 *sa, const ui16 *b, const ui8* sb, const size_n n_col) {
+
+    const ui16* it_a = a;
+    const ui8* it_sa = sa;
+    const ui16* it_b = b;
+    const ui8* it_sb = sb;
+    size_n i = 0;
+    ui32 res = 0;
+    ui32 tmp;
+
+    for (; i < n_col; ++i) {
+
+        tmp = (ui32) *(it_a++) * *(it_b++);
+
+        if ((*it_sa&UI16_SIGN) == (*it_sb&UI16_SIGN)) {
+
+            //tmp is always positive
+            if ((*it_sa&UI16_SCALE)+(*it_sb&UI16_SCALE) > (*sr&UI16_SCALE))
+                tmp >>= ((*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE) - (*sr&UI16_SCALE));
+            else
+                tmp <<= (*sr&UI16_SCALE - (*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE));
+
+            //if res is negative
+            if (*sr&UI16_SIGN) {
+                if (res > tmp)
+                    res -= tmp;
+                else {
+                    res = tmp - res;
+                    *sr ^= UI16_SIGN;
+                }
+            } else         //res is positive
+                res += tmp;
+
+        } else {
+
+            //tmp is always negative
+            if ((*it_sa&UI16_SCALE)+(*it_sb&UI16_SCALE) > (*sr&UI16_SCALE))
+                tmp >>= ((*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE) - (*sr&UI16_SCALE));
+            else
+                tmp <<= ((*sr&UI16_SCALE) - (*it_sa&UI16_SCALE) + (*it_sb&UI16_SCALE));
+
+            //if res is negative
+            if (*sr&UI16_SIGN)
+                res += tmp;
+            else {
+                if (res > tmp)
+                    res -= tmp;
+                else {
+                    res = tmp - res;
+                    *sr ^= UI16_SIGN;
+                }
+            }
+
+        }
+
+        ++it_sa;
+        ++it_sb;
+
+    }
+
+    return (res > UI16_MAX) ? (ui16) UI16_MAX : (ui16) res;
+
+}
+
+
+size_n arr_argmin_ui16e(const ui16 *a, const size_n n) {
+
+    size_n i = 1;
+    ui16 min = *a;
+    size_n p = 0;
+    const ui16* it_a = a;
+
+    for (; i < n; ++i) {
+
+        if (*(++it_a) < min) {
+            min = *it_a;
+            p = i;
+        } else
+            ++it_a;
+
+    }
+
+    return p;
 
 }

@@ -120,7 +120,7 @@ ui16 ui16_add_es(ui8* sc, const ui16 a, const ui8 sa, const ui16 b, const ui8 sb
 
             res = a + b;
             *sc = sa;
-            return (res < b) ? UI16_MAX : res;
+            return (res < b) ? (ui16) UI16_MAX : res;
 
         } else {
 
@@ -136,7 +136,7 @@ ui16 ui16_add_es(ui8* sc, const ui16 a, const ui8 sa, const ui16 b, const ui8 sb
 
             res = a + b;
             *sc = sb;
-            return (res < a) ? UI16_MAX : res;
+            return (res < a) ? (ui16) UI16_MAX : res;
 
         } else {
 
@@ -146,11 +146,38 @@ ui16 ui16_add_es(ui8* sc, const ui16 a, const ui8 sa, const ui16 b, const ui8 sb
 
         }
 
-
     }
 
 }
 
+void ui16_add_slf_es(ui16* a, ui8* sa, const ui16 b, const ui8 sb) {
+
+    //TODO check overflows
+
+    if (*a > b) {
+
+        if ((*sa & UI16_SIGN) == (sb & UI16_SIGN))
+            *a += b;
+        else
+            *a -= b;
+
+    } else {
+
+        if ((*sa & UI16_SIGN) == (sb & UI16_SIGN)) {
+
+            *a += b;
+            *sa = sb;
+
+        } else {
+
+            *a = b - *a;
+            *sa = sb;
+
+        }
+
+    }
+
+}
 
 ui16 ui16_sub_es(ui8* sc, const ui16 a, const ui8 sa, const ui16 b, const ui8 sb) {
 

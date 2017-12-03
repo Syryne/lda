@@ -8,7 +8,7 @@
 
 
 void arr_read_fl(char *buf, float *arr, size_n l);
-void arr_print_fl(float *arr, size_n l);
+void arr_print_fl(const float *arr, size_n l);
 void arr_add_self_fl(float *a, const float *b, size_n size);
 void arr_div_self_scal_fl(float *a, int16_t scal, size_n n);
 

@@ -9,6 +9,9 @@ size_n predict_mahalanobis_fl(float *distance, const float *fv_fl, const float *
     float t_fl[n_feat];
     float dist_min = 50000;
 
+    //printf("FLOAT fv\n");
+    //arr_print_fl(fv_fl, n_feat);
+
     size_n pr = 0;
     uint8_t i = 0;
     for (; i < CLASS_COUNT; ++i) {
@@ -44,11 +47,7 @@ size_n predict_mahalanobis_si16(si16 *distance, const si8 dist_sc, const si16 *f
 
         arr_sub_si16e(temp, fv, means + i * n_feat, n_feat);
         arr_trnsf_upp_si16d(t, t_scale, temp, fv_sc, covar_inv, covar_inv_sc, n_feat);
-
         *it_dist = arr_mult_scal_si16de_si16e(dist_sc, t, t_scale, temp, fv_sc, n_feat);
-        //if (*it_dist > SI16_MAX || *it_dist < SI16_MIN) {
-            //printf("%f\t%i\n", si32_fl(*it_dist, dist_sc), *it_dist);
-        //}
 
         //*it_dist = (*it_dist < 0) ? -*it_dist : *it_dist;
         if (*it_dist < dist_min) {
@@ -58,6 +57,7 @@ size_n predict_mahalanobis_si16(si16 *distance, const si8 dist_sc, const si16 *f
             ++it_dist;
 
     }
+    printf("\n");
 
     return pr;
 
@@ -151,8 +151,8 @@ size_n predict_mahalanobis_sns_si16(si16 *distance, const si8 dist_sc, const si1
 
     }
 
-    //printf("%i\n", arr_argmin_si16(temp, CLASS_COUNT));
-    return arr_argmin_si16(temp, CLASS_COUNT);
+    //printf("%i\n", arr_argmin_si16e(temp, CLASS_COUNT));
+    return arr_argmin_si16e(temp, CLASS_COUNT);
 
 }
 
@@ -170,9 +170,8 @@ size_n predict_mahalanobis_sns_fl(float *distance, const float *fv, const float 
     for (; j < SENS_COUNT; ++j) {
 
         predict_mahalanobis_fl(it_dist, it_fv, it_means, it_ci, n_feat);
-        //arr_print_fl(it_dist, CLASS_COUNT);
         arr_add_self_fl(temp, it_dist, CLASS_COUNT);
-        //arr_print_fl(temp, CLASS_COUNT);
+
         it_dist += CLASS_COUNT;
         it_fv += n_feat;
         it_means += n_feat*CLASS_COUNT;
@@ -180,13 +179,12 @@ size_n predict_mahalanobis_sns_fl(float *distance, const float *fv, const float 
 
     }
 
-    //printf("%i\n", arr_argmin_fl(temp, CLASS_COUNT));
     return arr_argmin_fl(temp, CLASS_COUNT);
 
 }
 
 
-size_n predict_mahalanobis_ui16(ui16 *distance, ui8 dist_sc, const ui16 *fv, const ui8 fv_sc, const ui16 *means,
+size_n predict_mahalanobis_ui16(ui16 *distance, ui8 *dist_sc, const ui16 *fv, const ui8 fv_sc, const ui16 *means,
                                 const ui16 *covar_inv, const ui8 *covar_inv_sc, const size_n n_feat) {
 
     ui16 fv_m[n_feat];
@@ -196,6 +194,7 @@ size_n predict_mahalanobis_ui16(ui16 *distance, ui8 dist_sc, const ui16 *fv, con
 
     ui16 dist_min = UI16_MAX;
     ui16* it_dist = distance;
+    ui8* it_dist_sc = dist_sc;
     size_n pr = 0;
 
     uint8_t i = 0;
@@ -203,11 +202,7 @@ size_n predict_mahalanobis_ui16(ui16 *distance, ui8 dist_sc, const ui16 *fv, con
 
         arr_sub_ui16e(fv_m, fv_m_sc, fv, fv_sc, means + i * n_feat, fv_sc, n_feat);
         arr_trnsf_upp_ui16d(t, t_scale, fv_m, fv_m_sc, covar_inv, covar_inv_sc, n_feat);
-
-        *it_dist = arr_mult_scal_ui16de_ui16e(&dist_sc, t, t_scale, fv_m, fv_m_sc, n_feat);
-        //if (*it_dist > UI16_MAX || *it_dist < UI16_MIN) {
-        //printf("%f\t%i\n", si32_fl(*it_dist, dist_sc), *it_dist);
-        //}
+        *it_dist = arr_mult_scal_ui16de_ui16e_(it_dist_sc, t, t_scale, fv_m, fv_m_sc, n_feat);
 
         //*it_dist = (*it_dist < 0) ? -*it_dist : *it_dist;
         if (*it_dist < dist_min) {
@@ -216,13 +211,45 @@ size_n predict_mahalanobis_ui16(ui16 *distance, ui8 dist_sc, const ui16 *fv, con
         } else
             ++it_dist;
 
+        ++it_dist_sc;
+
     }
 
     return pr;
 
 }
 
+size_n predict_mahalanobis_sns_ui16(ui16 *distance, ui8 *dist_sc, const ui16 *fv, const ui8 fv_sc, const ui16 *means,
+                                    const ui16 *covar_inv, const ui8 *covar_inv_sc, const size_n n_feat) {
 
+    ui16 temp[CLASS_COUNT];
+    ui8 temp_sc[CLASS_COUNT];
+    memset(temp, 0, CLASS_COUNT*sizeof(ui16));
+    ui16* it_dist = distance;
+    ui8* it_dist_sc = dist_sc;
+    const ui16* it_fv = fv;
+    const ui16* it_means = means;
+    const ui16* it_ci = covar_inv;
+    const ui8* it_cis = covar_inv_sc;
+
+    uint8_t j = 0;
+    for (; j < SENS_COUNT; ++j) {
+
+        predict_mahalanobis_ui16(it_dist, it_dist_sc, it_fv, fv_sc, it_means, it_ci, it_cis, n_feat);
+        arr_add_self_ui16e(temp, temp_sc, it_dist, it_dist_sc, CLASS_COUNT);
+
+        it_dist += CLASS_COUNT;
+        it_dist_sc += CLASS_COUNT;
+        it_fv += n_feat;
+        it_means += n_feat*CLASS_COUNT;
+        it_ci += COVAR_L_S;
+        it_cis += COVAR_L_S;
+
+    }
+
+    return arr_argmin_ui16e(temp, CLASS_COUNT);
+
+}
 
 void test_mahalanobis() {
 
@@ -256,6 +283,7 @@ void test_mahalanobis() {
     mat_fl_si16e(means_si, S_feat_si, means_fl, CLASS_COUNT, FEAT_TOT_COUNT);
     mat_fl_ui16e(means_ui, means_ui_sc, means_fl, CLASS_COUNT, FEAT_TOT_COUNT);
     mat_read_series_fl(dp_mns_sns, means_sns_fl, CLASS_COUNT, FEAT_COUNT, SENS_COUNT);
+
     arr_fl_si16e(means_sns_si, S_feat_si, means_sns_fl, CLASS_COUNT*FEAT_COUNT*SENS_COUNT);
     arr_fl_ui16e(means_sns_ui, means_sns_ui_sc, means_sns_fl, CLASS_COUNT*FEAT_COUNT*SENS_COUNT);
 
@@ -398,11 +426,17 @@ void test_mahalanobis() {
         if (cl_tmp == cl_correct)
             ++cl_pr_fl;
 
+        //printf("Distances float\n");
+        //arr_print_fl(md_fl, CLASS_COUNT);
+
         //predict class using si16
         cl_tmp = predict_mahalanobis_si16(md_si16, md_si16_sc, fv_si16, S_feat_si, means_si, ci_si16d,
                                           ci_si16d_sc, FEAT_TOT_COUNT);
         if (cl_tmp == cl_correct)
             ++cl_pr_si16;
+
+        //printf("\nDistances si16\n");
+        //arr_print_si16e(md_si16, md_si16_sc, CLASS_COUNT);
 
         cl_tmp = predict_mahalanobis_si32(md_si32, md_si32_sc, fv_si16, S_feat_si, means_si, ci_si16d,
                                           ci_si16d_sc, FEAT_TOT_COUNT);
@@ -414,9 +448,12 @@ void test_mahalanobis() {
         if (cl_tmp == cl_correct)
             ++cl_pr_ui16;
 
+        //printf("\nDistances ui16\n");
+        //arr_print_ui16e(md_ui16, md_ui16_sc, CLASS_COUNT);
+
 
         //predict class using floats and per sensor
-        cl_tmp = predict_mahalanobis_sns_fl(mds_fl, fv_fl, means_fl, ci_sns_fl, FEAT_COUNT);
+        cl_tmp = predict_mahalanobis_sns_fl(mds_fl, fv_fl, means_sns_fl, ci_sns_fl, FEAT_COUNT);
         if (cl_tmp == cl_correct)
             ++cl_pr_fl_sns;
 

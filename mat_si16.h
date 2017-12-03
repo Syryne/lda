@@ -24,7 +24,7 @@ void arr_sub_si16e(si16 *c, const si16 *a, const si16 *b, size_n n);
 void arr_add_self_si16e(si16 *a, const si16 *b, size_n size);
 void arr_add_self_si32e(si32 *a, const si32 *b, size_n size);
 size_n arr_argmax_si16(const si16 *a, size_n n);
-size_n arr_argmin_si16(const si16 *a, size_n n);
+size_n arr_argmin_si16e(const si16 *a, const size_n n);
 size_n arr_argmin_si32(const si32 *a, size_n n);
 
 void arr_trnsf_upp_si16d(si16* y, si8* sy, const si16 *x, si8 sx, const si16 *trans_mat, const si8* stm, size_n n_row);

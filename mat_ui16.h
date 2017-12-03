@@ -15,9 +15,12 @@ void mat_print_upp_ui16d(const ui16 *mat, const ui8 *scale, size_n n_rows, size_
 void mat_print_ui16e(const ui16 *mat, ui8 scale, size_n n_row, size_n n_col);
 void mat_print_ui16d(const ui16 *mat, const ui8* scale, size_n n_row, size_n n_col);
 
+void arr_add_self_ui16e(ui16 *a, ui8* sa, const ui16 *b, const ui8* sb, size_n size);
 void arr_sub_ui16e(ui16 *c, ui8 *sc, const ui16 *a, ui8 sa, const ui16 *b, ui8 sb, size_n n);
 void arr_trnsf_upp_ui16d(ui16* y, ui8* sy, const ui16 *x, const ui8* sx, const ui16 *trans_mat, const ui8* stm, size_n n_row);
 ui16 arr_mult_scal_ui16de_ui16e(ui8 *sr, const ui16 *a, const ui8 *sa, const ui16 *b, const ui8 *sb, size_n n_col);
+ui16 arr_mult_scal_ui16de_ui16e_(ui8 *sr, const ui16 *a, const ui8 *sa, const ui16 *b, const ui8 *sb, size_n n_col);
 
+size_n arr_argmin_ui16e(const ui16 *a, size_n n);
 
 #endif //UNTITLED_MAT_UI16_H

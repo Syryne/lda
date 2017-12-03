@@ -20,6 +20,7 @@ ui16 fl_ui16_ds(ui8 *scale, float a);
 float ui16_fl(ui16 a, ui8 scale);
 
 ui16 ui16_add_es(ui8* sc, ui16 a, ui8 sa, ui16 b, ui8 sb);
+void ui16_add_slf_es(ui16* a, ui8* sa, ui16 b, ui8 sb);
 ui16 ui16_sub_es(ui8* sc, ui16 a, ui8 sa, ui16 b, ui8 sb);
 ui16 ui16_add_ds(ui16 a, uint8_t sa, ui16 b, uint8_t sb);
 ui16 ui16_sub_ds(ui16 a, uint8_t sa, ui16 b, uint8_t sb);
